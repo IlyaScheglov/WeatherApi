@@ -12,7 +12,7 @@ import java.net.URLConnection;
 public class WeatherGetter {
 
     private static String firstPartOfUrl = "https://api.openweathermap.org/data/2.5/forecast?q=";
-    private static String secondPartOfUrl = "&appid=54a629fe6d5b44dfd2363afe9718bdb5";
+    private static String secondPartOfUrl = "&appid=XXX";
 
     public static void getWetherInCity(String cityName){
         String output = getUrlContent(firstPartOfUrl + cityName + secondPartOfUrl);
