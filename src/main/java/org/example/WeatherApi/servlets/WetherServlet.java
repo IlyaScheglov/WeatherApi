@@ -8,30 +8,26 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-@WebServlet("/weather-servlet")
+@WebServlet(urlPatterns = {"/city-weather"})
 public class WetherServlet extends HttpServlet {
 
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
-        log("Servlet starts!!!");
     }
 
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.getWriter().write("service start");
         super.service(req, resp);
-        resp.getWriter().write("service end");
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.getWriter().write("GET");
+        resp.getWriter().write("Введите город, в котором нужно узнать погоду");
     }
 
     @Override
     public void destroy() {
         super.destroy();
-        log("Sevlet has been destroyed!!!");
     }
 }

@@ -1,6 +1,5 @@
 package org.example.WeatherApi.components;
 
-import jakarta.xml.bind.annotation.XmlValue;
 import org.example.WeatherApi.wetherobject.WeatherObject;
 import org.json.JSONObject;
 
