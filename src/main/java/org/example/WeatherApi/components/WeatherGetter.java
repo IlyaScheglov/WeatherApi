@@ -1,5 +1,6 @@
 package org.example.WeatherApi.components;
 
+import org.example.WeatherApi.config.WaysConfig;
 import org.example.WeatherApi.wetherobject.WeatherObject;
 import org.json.JSONObject;
 
@@ -10,15 +11,15 @@ import java.net.URLConnection;
 
 public class WeatherGetter {
 
-    private static String firstPartOfUrl = "https://api.openweathermap.org/data/2.5/forecast?q=";
-    private static String secondPartOfUrl = "&appid=XXX";
+    private static String firstPartOfUrl = WaysConfig.getFirstPartOfUrl();
+    private static String secondPartOfUrl = WaysConfig.getSecondPartOfUrl();
 
-    public static void getWetherInCity(String cityName){
+    public static String getWetherInCity(String cityName){
         String output = getUrlContent(firstPartOfUrl + cityName + secondPartOfUrl);
         if(output.equals("no city found")){
             System.out.println("Город не найден");
         }
-        System.out.println(getWeatherObjfromJSON(output, cityName).toString());
+        return getWeatherObjfromJSON(output, cityName).toDivHTML();
     }
 
     private static String getUrlContent(String urlAddress){
