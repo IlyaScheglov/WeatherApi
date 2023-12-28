@@ -9,7 +9,7 @@ public class WaysConfig {
 
     private static final String firstPartOfUrl = "https://api.openweathermap.org/data/2.5/forecast?q=";
 
-    private static final String secondPartOfUrl = "&appid=XXX";
+    private static final String secondPartOfUrl = "&appid=54a629fe6d5b44dfd2363afe9718bdb5";
 
     private static final String firstHTMLPagePath = "/templates/index.html";
 

@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 public class WeatherObject implements Serializable{
 
-    private String cityName;
+    private String date;
 
     private int temperature;
     private int temperatureFeels;
@@ -19,11 +19,11 @@ public class WeatherObject implements Serializable{
 
     private int humidity;
 
-    public WeatherObject(String cityName, int temperature,
+    public WeatherObject(String date, int temperature,
                          int temperatureFeels, int maxTemperature,
                          int minTemperature, int pressure,
                          double windSpeed, int humidity) {
-        this.cityName = cityName;
+        this.date = date;
         this.temperature = temperature;
         this.temperatureFeels = temperatureFeels;
         this.maxTemperature = maxTemperature;
@@ -34,7 +34,7 @@ public class WeatherObject implements Serializable{
     }
 
     public String getCityName() {
-        return cityName;
+        return date;
     }
 
     public int getTemperature() {
@@ -65,8 +65,8 @@ public class WeatherObject implements Serializable{
         return humidity;
     }
 
-    public void setCityName(String cityName) {
-        this.cityName = cityName;
+    public void setCityName(String date) {
+        this.date = date;
     }
 
     public void setTemperature(int temperature) {
@@ -99,7 +99,7 @@ public class WeatherObject implements Serializable{
 
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder("Погода в городе: " + cityName + "\n");
+        StringBuilder builder = new StringBuilder("Дата: " + date + "\n");
         builder.append("Температура: " + temperature + "°C\n");
         builder.append("Ощущается как: " + temperatureFeels + "°C\n");
         builder.append("Максимальная температура: " + maxTemperature + "°C\n");
@@ -112,7 +112,8 @@ public class WeatherObject implements Serializable{
 
     public String toDivHTML(){
         StringBuilder builder = new StringBuilder("<div>\n");
-        builder.append("<h2>Погода в городе: " + cityName + "</h2>\n");
+        builder.append("<p>------------</p>\n");
+        builder.append("<p>Дата: " + date + "</p>\n");
         builder.append("<p>Температура: " + temperature + "°C</p>\n");
         builder.append("<p>Ощущается как: " + temperatureFeels + "°C</p>\n");
         builder.append("<p>Максимальная температура: " + maxTemperature + "°C</p>\n");
@@ -120,7 +121,7 @@ public class WeatherObject implements Serializable{
         builder.append("<p>Давление: " + pressure + "мм.рт.ст.</p>\n");
         builder.append("<p>Скорость ветра: " + windSpeed + "м/с</p>\n");
         builder.append("<p>Влажность: " + humidity + "%</p>\n");
-        builder.append("</div>");
+        builder.append("</div>\n");
         return builder.toString();
     }
 }

@@ -36,6 +36,7 @@ public class MainServlet extends HttpServlet {
             String cityName = parametersMap.get("city")[0];
             String weather = WeatherGetter.getWetherInCity(cityName);
             String strToWrite = WaysConfig.getSecondHTMLPage()
+                    .replaceAll("XXX", "Погода в городе: " + cityName)
                     .replaceAll("<div></div>", weather);
             resp.getWriter().write(strToWrite);
         }

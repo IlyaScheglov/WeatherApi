@@ -8,6 +8,8 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.List;
 
 public class WeatherGetter {
 
@@ -17,9 +19,13 @@ public class WeatherGetter {
     public static String getWetherInCity(String cityName){
         String output = getUrlContent(firstPartOfUrl + cityName + secondPartOfUrl);
         if(output.equals("no city found")){
-            System.out.println("Город не найден");
+            return null;
         }
-        return getWeatherObjfromJSON(output, cityName).toDivHTML();
+        StringBuilder builder = new StringBuilder();
+        List<WeatherObject> weatherObjects = getWeatherObjfromJSON(output);
+
+        weatherObjects.forEach(wo -> builder.append(wo.toDivHTML()));
+        return builder.toString();
     }
 
     private static String getUrlContent(String urlAddress){
@@ -43,27 +49,35 @@ public class WeatherGetter {
         return stringBuffer.toString();
     }
 
-    private static WeatherObject getWeatherObjfromJSON(String jsonWeather, String cityName){
+    private static List<WeatherObject> getWeatherObjfromJSON(String jsonWeather){
         JSONObject jsonObject = new JSONObject(jsonWeather);
+        List<WeatherObject> result = new ArrayList<>();
 
-        int temperature = convertToRealTemperature(jsonObject.getJSONArray("list")
-                .getJSONObject(0).getJSONObject("main").getDouble("temp"));
-        int temperatureFeels = convertToRealTemperature(jsonObject.getJSONArray("list").getJSONObject(0)
-                .getJSONObject("main").getDouble("feels_like"));
-        int minTemperature = convertToRealTemperature(jsonObject.getJSONArray("list").getJSONObject(0)
-                .getJSONObject("main").getDouble("temp_min"));
-        int maxTemperature = convertToRealTemperature(jsonObject.getJSONArray("list").getJSONObject(0)
-                .getJSONObject("main").getDouble("temp_max"));
-        int pressure = convertToRealPressure(jsonObject.getJSONArray("list").getJSONObject(0)
-                .getJSONObject("main").getDouble("pressure"));
-        double windSpeed = jsonObject.getJSONArray("list").getJSONObject(0)
-                .getJSONObject("wind").getDouble("speed");
-        int humidity = (int) jsonObject.getJSONArray("list").getJSONObject(0)
-                .getJSONObject("main").getDouble("humidity");
+        for(int i = 0; i <= 32; i += 8){
+            JSONObject litteleJSONObj = jsonObject.getJSONArray("list")
+                    .getJSONObject(i);
+            String date = convertToDate(litteleJSONObj
+                    .getString("dt_txt"));
+            int temperature = convertToRealTemperature(litteleJSONObj
+                    .getJSONObject("main").getDouble("temp"));
+            int temperatureFeels = convertToRealTemperature(litteleJSONObj
+                    .getJSONObject("main").getDouble("feels_like"));
+            int minTemperature = convertToRealTemperature(litteleJSONObj
+                    .getJSONObject("main").getDouble("temp_min"));
+            int maxTemperature = convertToRealTemperature(litteleJSONObj
+                    .getJSONObject("main").getDouble("temp_max"));
+            int pressure = convertToRealPressure(litteleJSONObj
+                    .getJSONObject("main").getDouble("pressure"));
+            double windSpeed = litteleJSONObj
+                    .getJSONObject("wind").getDouble("speed");
+            int humidity = litteleJSONObj
+                    .getJSONObject("main").getInt("humidity");
 
-        WeatherObject weatherObject = new WeatherObject(cityName, temperature, temperatureFeels,
-                maxTemperature, minTemperature, pressure, windSpeed, humidity);
-        return weatherObject;
+            result.add(new WeatherObject(date, temperature, temperatureFeels,
+                    maxTemperature, minTemperature, pressure, windSpeed, humidity));
+        }
+
+        return result;
     }
 
     private static int convertToRealTemperature(double temp){
@@ -72,6 +86,10 @@ public class WeatherGetter {
 
     private static int convertToRealPressure(double pressure){
         return (int) Math.round((pressure * 100) / 133.3);
+    }
+
+    private static String convertToDate(String date){
+        return date.substring(0, 10);
     }
 
 }
