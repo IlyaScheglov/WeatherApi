@@ -18,8 +18,8 @@ public class WeatherGetter {
 
     public static String getWetherInCity(String cityName){
         String output = getUrlContent(firstPartOfUrl + cityName + secondPartOfUrl);
-        if(output.equals("no city found")){
-            return null;
+        if(output == null){
+            return "<p>Город не найден</p>";
         }
         StringBuilder builder = new StringBuilder();
         List<WeatherObject> weatherObjects = getWeatherObjfromJSON(output);
@@ -44,7 +44,7 @@ public class WeatherGetter {
             bufferedReader.close();
         }
         catch (Exception e){
-            return "no city found";
+            return null;
         }
         return stringBuffer.toString();
     }
@@ -54,30 +54,36 @@ public class WeatherGetter {
         List<WeatherObject> result = new ArrayList<>();
 
         for(int i = 0; i <= 32; i += 8){
-            JSONObject litteleJSONObj = jsonObject.getJSONArray("list")
-                    .getJSONObject(i);
-            String date = convertToDate(litteleJSONObj
-                    .getString("dt_txt"));
-            int temperature = convertToRealTemperature(litteleJSONObj
-                    .getJSONObject("main").getDouble("temp"));
-            int temperatureFeels = convertToRealTemperature(litteleJSONObj
-                    .getJSONObject("main").getDouble("feels_like"));
-            int minTemperature = convertToRealTemperature(litteleJSONObj
-                    .getJSONObject("main").getDouble("temp_min"));
-            int maxTemperature = convertToRealTemperature(litteleJSONObj
-                    .getJSONObject("main").getDouble("temp_max"));
-            int pressure = convertToRealPressure(litteleJSONObj
-                    .getJSONObject("main").getDouble("pressure"));
-            double windSpeed = litteleJSONObj
-                    .getJSONObject("wind").getDouble("speed");
-            int humidity = litteleJSONObj
-                    .getJSONObject("main").getInt("humidity");
-
-            result.add(new WeatherObject(date, temperature, temperatureFeels,
-                    maxTemperature, minTemperature, pressure, windSpeed, humidity));
+            makeNewWeatherObject(i, result, jsonObject);
         }
 
         return result;
+    }
+
+    private static void makeNewWeatherObject(int index, List<WeatherObject> result,
+                                      JSONObject jsonObject){
+        JSONObject litteleJSONObj = jsonObject.getJSONArray("list")
+                .getJSONObject(index);
+
+        String date = convertToDate(litteleJSONObj
+                .getString("dt_txt"));
+        int temperature = convertToRealTemperature(litteleJSONObj
+                .getJSONObject("main").getDouble("temp"));
+        int temperatureFeels = convertToRealTemperature(litteleJSONObj
+                .getJSONObject("main").getDouble("feels_like"));
+        int minTemperature = convertToRealTemperature(litteleJSONObj
+                .getJSONObject("main").getDouble("temp_min"));
+        int maxTemperature = convertToRealTemperature(litteleJSONObj
+                .getJSONObject("main").getDouble("temp_max"));
+        int pressure = convertToRealPressure(litteleJSONObj
+                .getJSONObject("main").getDouble("pressure"));
+        double windSpeed = litteleJSONObj
+                .getJSONObject("wind").getDouble("speed");
+        int humidity = litteleJSONObj
+                .getJSONObject("main").getInt("humidity");
+
+        result.add(new WeatherObject(date, temperature, temperatureFeels,
+                maxTemperature, minTemperature, pressure, windSpeed, humidity));
     }
 
     private static int convertToRealTemperature(double temp){
