@@ -8,9 +8,10 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.time.Clock;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class WeatherGetter {
@@ -39,6 +40,8 @@ public class WeatherGetter {
         result.append(biggerOrLessInStr(midTemperatureNow, lastTemperature));
         result.append("по сравнению с прошлым запросом температуры в городе " +
                 cityName + " " + date);
+        Clock clock = Clock.systemUTC();
+        LocalDate nowDate = LocalDate.now(clock);
         //Работа с БД по замене записи
         return result.toString();
     }
