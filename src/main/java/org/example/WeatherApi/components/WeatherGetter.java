@@ -10,22 +10,49 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class WeatherGetter {
 
     private static String firstPartOfUrl = WaysConfig.getFirstPartOfUrl();
     private static String secondPartOfUrl = WaysConfig.getSecondPartOfUrl();
 
-    public static String getWetherInCity(String cityName){
+    public static List<WeatherObject> getWetherInCity(String cityName){
         String output = getUrlContent(firstPartOfUrl + cityName + secondPartOfUrl);
-        if(output == null){
-            return "<p>Город не найден</p>";
+        if(output != null){
+            return getWeatherObjFromJSON(output);
         }
-        StringBuilder builder = new StringBuilder();
-        List<WeatherObject> weatherObjects = getWeatherObjfromJSON(output);
+        return null;
+    }
 
-        weatherObjects.forEach(wo -> builder.append(wo.toDivHTML()));
-        return builder.toString();
+    public static String weatherChangesAnalitic(String cityName,
+                                                List<Integer> nowTemperatures){
+        StringBuilder result = new StringBuilder();
+        //Здесь должно вытягивать из БД данные о погоде с прошлого запроса о средней температуре и дате запроса
+        int lastTemperature = 15;
+        String date = "1.1.24";
+        AtomicInteger nowTemperaturesSum = new AtomicInteger(0);
+        nowTemperatures.forEach(nt -> nowTemperaturesSum.set(nowTemperaturesSum.get() + nt));
+        int midTemperatureNow = nowTemperaturesSum.get() / nowTemperatures.size();
+        result.append("Нынешняя средняя температура: " + midTemperatureNow);
+        result.append(biggerOrLessInStr(midTemperatureNow, lastTemperature));
+        result.append("по сравнению с прошлым запросом температуры в городе " +
+                cityName + " " + date);
+        //Работа с БД по замене записи
+        return result.toString();
+    }
+
+    private static String biggerOrLessInStr(int now, int last){
+        if(now > last){
+            return " выше ";
+        }
+        else if(now < last){
+            return " ниже ";
+        }
+        else{
+            return " примерно равна ";
+        }
     }
 
     private static String getUrlContent(String urlAddress){
@@ -49,7 +76,7 @@ public class WeatherGetter {
         return stringBuffer.toString();
     }
 
-    private static List<WeatherObject> getWeatherObjfromJSON(String jsonWeather){
+    private static List<WeatherObject> getWeatherObjFromJSON(String jsonWeather){
         JSONObject jsonObject = new JSONObject(jsonWeather);
         List<WeatherObject> result = new ArrayList<>();
 
