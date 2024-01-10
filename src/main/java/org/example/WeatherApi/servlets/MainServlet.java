@@ -39,17 +39,22 @@ public class MainServlet extends HttpServlet {
         else{
             String cityName = parametersMap.get("city")[0];
             List<WeatherObject> weather = WeatherGetter.getWetherInCity(cityName);
-            StringBuilder weatherDIV = new StringBuilder();
-            weather.forEach(w -> weatherDIV.append(w.toDivHTML()));
-            List<Integer> listTemperatureToAnalyze = weather.stream()
-                    .map(w -> w.getTemperature())
-                    .collect(Collectors.toList());
-            String weatherChanges = WeatherGetter.weatherChangesAnalitic(cityName, listTemperatureToAnalyze);
-            String strToWrite = WaysConfig.getSecondHTMLPage()
-                    .replaceAll("XXX", "Погода в городе: " + cityName)
-                    .replaceAll("ZZZ", weatherChanges)
-                    .replaceAll("<div></div>", weatherDIV.toString());
-            resp.getWriter().write(strToWrite);
+            if(weather == null){
+                String strToWrite = WaysConfig.getSecondHTMLPage()
+                        .replaceAll("XXX", "Погода в городе: " + cityName)
+                                .replaceAll("ZZZ", "Такого города не существует");
+                resp.getWriter().write(strToWrite);
+            }
+            else{
+                StringBuilder weatherDIV = new StringBuilder();
+                weather.forEach(w -> weatherDIV.append(w.toDivHTML()));
+                String weatherChanges = WeatherGetter.weatherChangesAnalytic(cityName, weather);
+                String strToWrite = WaysConfig.getSecondHTMLPage()
+                        .replaceAll("XXX", "Погода в городе: " + cityName)
+                        .replaceAll("ZZZ", weatherChanges)
+                        .replaceAll("<div></div>", weatherDIV.toString());
+                resp.getWriter().write(strToWrite);
+            }
         }
     }
 

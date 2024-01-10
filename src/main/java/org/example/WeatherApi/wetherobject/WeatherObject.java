@@ -33,7 +33,7 @@ public class WeatherObject implements Serializable{
         this.humidity = humidity;
     }
 
-    public String getCityName() {
+    public String getDate() {
         return date;
     }
 
@@ -65,7 +65,7 @@ public class WeatherObject implements Serializable{
         return humidity;
     }
 
-    public void setCityName(String date) {
+    public void setDate(String date) {
         this.date = date;
     }
 

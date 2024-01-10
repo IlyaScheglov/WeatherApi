@@ -1,6 +1,8 @@
 package org.example.WeatherApi.components;
 
 import org.example.WeatherApi.config.WaysConfig;
+import org.example.WeatherApi.service.DatabaseQueries;
+import org.example.WeatherApi.wetherobject.WeatherMidTempObject;
 import org.example.WeatherApi.wetherobject.WeatherObject;
 import org.json.JSONObject;
 
@@ -27,22 +29,40 @@ public class WeatherGetter {
         return null;
     }
 
-    public static String weatherChangesAnalitic(String cityName,
-                                                List<Integer> nowTemperatures){
-        StringBuilder result = new StringBuilder();
-        //Здесь должно вытягивать из БД данные о погоде с прошлого запроса о средней температуре и дате запроса
-        int lastTemperature = 15;
-        String date = "1.1.24";
+    public static String weatherChangesAnalytic(String cityName,
+                                                List<WeatherObject> nowTemperatures){
         AtomicInteger nowTemperaturesSum = new AtomicInteger(0);
-        nowTemperatures.forEach(nt -> nowTemperaturesSum.set(nowTemperaturesSum.get() + nt));
+        nowTemperatures.forEach(nt -> nowTemperaturesSum
+                .set(nowTemperaturesSum.get() + nt.getTemperature()));
         int midTemperatureNow = nowTemperaturesSum.get() / nowTemperatures.size();
-        result.append("Нынешняя средняя температура: " + midTemperatureNow);
+        String nowDate = nowTemperatures.get(0).getDate();
+
+        if(!DatabaseQueries.isThisCityWasSearchedBefore(cityName)){
+            long cityId = DatabaseQueries.addCityToDB(cityName);
+            DatabaseQueries.addMidCityWeather(cityId,
+                    new WeatherMidTempObject(midTemperatureNow, nowDate));
+            return "Погода в этом городе была проверена впервые";
+        }
+
+        long cityId = DatabaseQueries.getIdOfCity(cityName);
+        WeatherMidTempObject weatherMidTempObject = DatabaseQueries
+                .getMidWeatherByCityId(cityId);
+        int lastTemperature = weatherMidTempObject.getMiddleTemperature();
+        String lastDate = weatherMidTempObject.getDateOfSave();
+
+        DatabaseQueries.updateCityWeather(cityId,
+                new WeatherMidTempObject(midTemperatureNow, nowDate));
+        return getStringAnalytic(cityName, nowDate, lastDate,
+                midTemperatureNow, lastTemperature);
+    }
+
+    private static String getStringAnalytic(String cityName, String nowDate, String lastDate,
+                                     int midTemperatureNow, int lastTemperature){
+        StringBuilder result = new StringBuilder();
+        result.append("Нынешняя средняя температура " + nowDate + ": " + midTemperatureNow);
         result.append(biggerOrLessInStr(midTemperatureNow, lastTemperature));
-        result.append("по сравнению с прошлым запросом температуры в городе " +
-                cityName + " " + date);
-        Clock clock = Clock.systemUTC();
-        LocalDate nowDate = LocalDate.now(clock);
-        //Работа с БД по замене записи
+        result.append("по сравнению с прошлым запросом средней температуры в городе " +
+                cityName + " " + lastDate);
         return result.toString();
     }
 
