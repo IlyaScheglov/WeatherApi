@@ -38,19 +38,17 @@ public class WeatherGetter {
         String nowDate = nowTemperatures.get(0).getDate();
 
         if(!DatabaseQueries.isThisCityWasSearchedBefore(cityName)){
-            long cityId = DatabaseQueries.addCityToDB(cityName);
-            DatabaseQueries.addMidCityWeather(cityId,
+            DatabaseQueries.addNewCityWithItsMidTemp(cityName,
                     new WeatherMidTempObject(midTemperatureNow, nowDate));
             return "Погода в этом городе была проверена впервые";
         }
 
-        long cityId = DatabaseQueries.getIdOfCity(cityName);
         WeatherMidTempObject weatherMidTempObject = DatabaseQueries
-                .getMidWeatherByCityId(cityId);
+                .getMidTempByCityName(cityName);
         int lastTemperature = weatherMidTempObject.getMiddleTemperature();
         String lastDate = weatherMidTempObject.getDateOfSave();
 
-        DatabaseQueries.updateCityWeather(cityId,
+        DatabaseQueries.updateWeatherSafe(cityName,
                 new WeatherMidTempObject(midTemperatureNow, nowDate));
         return getStringAnalytic(cityName, nowDate, lastDate,
                 midTemperatureNow, lastTemperature);
@@ -62,7 +60,7 @@ public class WeatherGetter {
         result.append("Нынешняя средняя температура " + nowDate + ": " + midTemperatureNow);
         result.append(biggerOrLessInStr(midTemperatureNow, lastTemperature));
         result.append("по сравнению с прошлым запросом средней температуры в городе " +
-                cityName + " " + lastDate);
+                cityName + " " + lastDate + ": " + lastTemperature);
         return result.toString();
     }
 

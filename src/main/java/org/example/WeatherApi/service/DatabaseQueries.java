@@ -10,7 +10,7 @@ public class DatabaseQueries {
 
     //Этот кусок кода я еще не проверял
 
-    private static Statement getStatament(){
+    private static Connection getConnection(){
         try {
             Class.forName("org.postgresql.Driver");
         }
@@ -19,8 +19,7 @@ public class DatabaseQueries {
         }
         try {
             Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/WeatherDB", "postgres", "admin759");
-            Statement statement = connection.createStatement();
-            return statement;
+            return connection;
         }
         catch (SQLException e){
             e.printStackTrace();
@@ -28,10 +27,59 @@ public class DatabaseQueries {
         }
     }
 
+    public static WeatherMidTempObject getMidTempByCityName(String cityName){
+        try{
+            Connection connection = getConnection();
+            connection.setAutoCommit(false);
+            Statement statement = connection.createStatement();
+            long cityId = getIdOfCity(statement, cityName);
+            WeatherMidTempObject result = getMidWeatherByCityId(statement, cityId);
+            connection.commit();
+            statement.close();
+            return result;
+        }
+        catch (SQLException e){
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static void updateWeatherSafe(String cityName,
+                                         WeatherMidTempObject midWeather){
+        try{
+            Connection connection = getConnection();
+            connection.setAutoCommit(false);
+            Statement statement = connection.createStatement();
+            long cityId = getIdOfCity(statement, cityName);
+            updateCityWeather(statement, cityId, midWeather);
+            connection.commit();
+            statement.close();
+        }
+        catch (SQLException e){
+            e.printStackTrace();
+        }
+    }
+
+    public static void addNewCityWithItsMidTemp(String cityName,
+                                                WeatherMidTempObject midWeather){
+        try{
+            Connection connection = getConnection();
+            connection.setAutoCommit(false);
+            Statement statement = connection.createStatement();
+            long cityId = addCityToDB(statement, cityName);
+            addMidCityWeather(statement, cityId, midWeather);
+            connection.commit();
+            statement.close();
+        }
+        catch (SQLException e){
+            e.printStackTrace();
+        }
+    }
+
     public static boolean isThisCityWasSearchedBefore(String cityName){
         try {
             String query = "SELECT * FROM cities WHERE name = '" + cityName + "'";
-            Statement statement = getStatament();
+            Statement statement = getConnection().createStatement();
             ResultSet resultSet = statement.executeQuery(query);
             List<Long> listToCheckSize = new ArrayList<>();
             while(resultSet.next()){
@@ -46,9 +94,8 @@ public class DatabaseQueries {
         }
     }
 
-    public static long getIdOfCity(String cityName){
+    private static long getIdOfCity(Statement statement, String cityName){
         try {
-            Statement statement = getStatament();
             String query = "SELECT * FROM cities WHERE name = '" + cityName + "'";
             ResultSet resultSet = statement.executeQuery(query);
             long result = 0L;
@@ -56,7 +103,6 @@ public class DatabaseQueries {
                 result = resultSet.getLong("id");
                 break;
             }
-            statement.close();
             return result;
         }
         catch (SQLException e){
@@ -65,9 +111,8 @@ public class DatabaseQueries {
         }
     }
 
-    public static WeatherMidTempObject getMidWeatherByCityId(long cityId){
+    private static WeatherMidTempObject getMidWeatherByCityId(Statement statement, long cityId){
         try{
-            Statement statement = getStatament();
             String query = "SELECT * FROM weather_safe WHERE city_id = " + cityId;
             ResultSet resultSet = statement.executeQuery(query);
             WeatherMidTempObject result = null;
@@ -76,7 +121,6 @@ public class DatabaseQueries {
                         resultSet.getString("date_of_save"));
                 break;
             }
-            statement.close();
             return result;
         }
         catch (SQLException e){
@@ -85,9 +129,8 @@ public class DatabaseQueries {
         }
     }
 
-    public static long addCityToDB(String cityName){
+    private static long addCityToDB(Statement statement, String cityName){
         try {
-            Statement statement = getStatament();
             String insertionQuery = "INSERT INTO cities(name) VALUES('" + cityName + "')";
             String getCityQuery = "SELECT * FROM cities WHERE name = '" + cityName + "'";
             statement.executeUpdate(insertionQuery);
@@ -97,7 +140,6 @@ public class DatabaseQueries {
                 result = resultSet.getLong("id");
                 break;
             }
-            statement.close();
             return result;
         }
         catch (SQLException e){
@@ -106,28 +148,24 @@ public class DatabaseQueries {
         }
     }
 
-    public static void addMidCityWeather(long cityId, WeatherMidTempObject midTemperature){
+    private static void addMidCityWeather(Statement statement, long cityId, WeatherMidTempObject midTemperature){
         try {
-            Statement statement = getStatament();
             String query = "INSERT INTO weather_safe(date_of_save, mid_temperature, city_id) VALUES('"
                     + midTemperature.getDateOfSave() + "', " + midTemperature.getMiddleTemperature() +
                     ", " + cityId + ")";
             statement.executeUpdate(query);
-            statement.close();
         }
         catch (SQLException e){
             e.printStackTrace();
         }
     }
 
-    public static void updateCityWeather(long cityId, WeatherMidTempObject midTemperature){
+    private static void updateCityWeather(Statement statement, long cityId, WeatherMidTempObject midTemperature){
         try {
-            Statement statement = getStatament();
             String query = "UPDATE weather_safe SET date_of_save = '"
                     + midTemperature.getDateOfSave() + "', mid_temperature = "
                     + midTemperature.getMiddleTemperature() + " WHERE city_id = " + cityId;
             statement.executeUpdate(query);
-            statement.close();
         }
         catch (SQLException e){
             e.printStackTrace();
