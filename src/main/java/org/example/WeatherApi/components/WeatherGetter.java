@@ -1,9 +1,13 @@
 package org.example.WeatherApi.components;
 
+import lombok.RequiredArgsConstructor;
+import org.example.WeatherApi.HibernateUtil;
 import org.example.WeatherApi.config.WaysConfig;
 import org.example.WeatherApi.service.DatabaseQueries;
+import org.example.WeatherApi.service.HibernateQueries;
 import org.example.WeatherApi.wetherobject.WeatherMidTempObject;
 import org.example.WeatherApi.wetherobject.WeatherObject;
+import org.example.WeatherApi.wetherobject.WeatherSafeEntity;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -16,12 +20,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+
 public class WeatherGetter {
 
-    private static String firstPartOfUrl = WaysConfig.getFirstPartOfUrl();
-    private static String secondPartOfUrl = WaysConfig.getSecondPartOfUrl();
+    private final HibernateQueries hibernateQueries;
 
-    public static List<WeatherObject> getWetherInCity(String cityName){
+    public WeatherGetter() {
+        this.hibernateQueries = new HibernateQueries(new HibernateUtil());
+    }
+
+    private String firstPartOfUrl = WaysConfig.getFirstPartOfUrl();
+    private String secondPartOfUrl = WaysConfig.getSecondPartOfUrl();
+
+    public List<WeatherObject> getWetherInCity(String cityName){
         String output = getUrlContent(firstPartOfUrl + cityName + secondPartOfUrl);
         if(output != null){
             return getWeatherObjFromJSON(output);
@@ -29,7 +40,7 @@ public class WeatherGetter {
         return null;
     }
 
-    public static String weatherChangesAnalytic(String cityName,
+    public String weatherChangesAnalytic(String cityName,
                                                 List<WeatherObject> nowTemperatures){
         AtomicInteger nowTemperaturesSum = new AtomicInteger(0);
         nowTemperatures.forEach(nt -> nowTemperaturesSum
@@ -38,23 +49,20 @@ public class WeatherGetter {
         String nowDate = nowTemperatures.get(0).getDate();
 
         if(!DatabaseQueries.isThisCityWasSearchedBefore(cityName)){
-            DatabaseQueries.addNewCityWithItsMidTemp(cityName,
-                    new WeatherMidTempObject(midTemperatureNow, nowDate));
+            hibernateQueries.addNewCityWithItsMidTemp(cityName, nowDate, midTemperatureNow);
             return "Погода в этом городе была проверена впервые";
         }
 
-        WeatherMidTempObject weatherMidTempObject = DatabaseQueries
-                .getMidTempByCityName(cityName);
-        int lastTemperature = weatherMidTempObject.getMiddleTemperature();
-        String lastDate = weatherMidTempObject.getDateOfSave();
+        WeatherSafeEntity weatherEntityLast = hibernateQueries.getMidTempByCityName(cityName);
+        int lastTemperature = weatherEntityLast.getMidTemperature();
+        String lastDate = weatherEntityLast.getDateOfSave();
 
-        DatabaseQueries.updateWeatherSafe(cityName,
-                new WeatherMidTempObject(midTemperatureNow, nowDate));
+        hibernateQueries.updateWeatherSafe(cityName, nowDate, midTemperatureNow);
         return getStringAnalytic(cityName, nowDate, lastDate,
                 midTemperatureNow, lastTemperature);
     }
 
-    private static String getStringAnalytic(String cityName, String nowDate, String lastDate,
+    private String getStringAnalytic(String cityName, String nowDate, String lastDate,
                                      int midTemperatureNow, int lastTemperature){
         StringBuilder result = new StringBuilder();
         result.append("Нынешняя средняя температура " + nowDate + ": " + midTemperatureNow);
@@ -64,7 +72,7 @@ public class WeatherGetter {
         return result.toString();
     }
 
-    private static String biggerOrLessInStr(int now, int last){
+    private String biggerOrLessInStr(int now, int last){
         if(now > last){
             return " выше ";
         }
@@ -76,7 +84,7 @@ public class WeatherGetter {
         }
     }
 
-    private static String getUrlContent(String urlAddress){
+    private String getUrlContent(String urlAddress){
         StringBuffer stringBuffer = new StringBuffer();
 
         try{
@@ -97,7 +105,7 @@ public class WeatherGetter {
         return stringBuffer.toString();
     }
 
-    private static List<WeatherObject> getWeatherObjFromJSON(String jsonWeather){
+    private List<WeatherObject> getWeatherObjFromJSON(String jsonWeather){
         JSONObject jsonObject = new JSONObject(jsonWeather);
         List<WeatherObject> result = new ArrayList<>();
 
@@ -108,7 +116,7 @@ public class WeatherGetter {
         return result;
     }
 
-    private static void makeNewWeatherObject(int index, List<WeatherObject> result,
+    private void makeNewWeatherObject(int index, List<WeatherObject> result,
                                       JSONObject jsonObject){
         JSONObject litteleJSONObj = jsonObject.getJSONArray("list")
                 .getJSONObject(index);
@@ -134,15 +142,15 @@ public class WeatherGetter {
                 maxTemperature, minTemperature, pressure, windSpeed, humidity));
     }
 
-    private static int convertToRealTemperature(double temp){
+    private int convertToRealTemperature(double temp){
         return (int) Math.round(temp - 273.15);
     }
 
-    private static int convertToRealPressure(double pressure){
+    private int convertToRealPressure(double pressure){
         return (int) Math.round((pressure * 100) / 133.3);
     }
 
-    private static String convertToDate(String date){
+    private String convertToDate(String date){
         return date.substring(0, 10);
     }
 

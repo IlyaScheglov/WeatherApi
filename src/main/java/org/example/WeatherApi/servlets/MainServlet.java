@@ -2,6 +2,7 @@ package org.example.WeatherApi.servlets;
 
 import org.example.WeatherApi.components.WeatherGetter;
 import org.example.WeatherApi.config.WaysConfig;
+import org.example.WeatherApi.service.HibernateQueries;
 import org.example.WeatherApi.wetherobject.WeatherObject;
 
 import javax.servlet.*;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 @WebServlet(urlPatterns = {"/city-weather"})
 public class MainServlet extends HttpServlet {
 
+    private WeatherGetter weatherGetter = new WeatherGetter();
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -38,7 +40,7 @@ public class MainServlet extends HttpServlet {
         }
         else{
             String cityName = parametersMap.get("city")[0];
-            List<WeatherObject> weather = WeatherGetter.getWetherInCity(cityName);
+            List<WeatherObject> weather = weatherGetter.getWetherInCity(cityName);
             if(weather == null){
                 String strToWrite = WaysConfig.getSecondHTMLPage()
                         .replaceAll("XXX", "Погода в городе: " + cityName)
@@ -48,7 +50,7 @@ public class MainServlet extends HttpServlet {
             else{
                 StringBuilder weatherDIV = new StringBuilder();
                 weather.forEach(w -> weatherDIV.append(w.toDivHTML()));
-                String weatherChanges = WeatherGetter.weatherChangesAnalytic(cityName, weather);
+                String weatherChanges = weatherGetter.weatherChangesAnalytic(cityName, weather);
                 String strToWrite = WaysConfig.getSecondHTMLPage()
                         .replaceAll("XXX", "Погода в городе: " + cityName)
                         .replaceAll("ZZZ", weatherChanges)

@@ -86,7 +86,7 @@ public class DatabaseQueries {
                 listToCheckSize.add(resultSet.getLong("id"));
             }
             statement.close();
-            return listToCheckSize.size() > 0;
+            return !listToCheckSize.isEmpty();
         }
         catch (SQLException e){
             e.printStackTrace();
